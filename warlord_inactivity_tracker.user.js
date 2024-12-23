@@ -90,7 +90,7 @@ function checkLoan(loan, currentTimestamp) {
    let player = $(loan).find(".loaned > a")[0].text
    let playerState = members[player]
    let timestampDelta = currentTimestamp - playerState.timestamp
-   if(timestampDelta > 1100) {
+   if(timestampDelta > 3600) {
        markLoanAsOverdue(loan)
    }
 }
