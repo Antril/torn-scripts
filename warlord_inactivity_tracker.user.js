@@ -11,8 +11,6 @@
 // @grant       GM_addStyle
 // @connect     https://api.torn.com/
 // @require     https://code.jquery.com/jquery-3.6.0.min.js
-// @downloadURL
-// @updateURL
 // ==/UserScript==
 
 let apiKey = ""; // SET API KEY
