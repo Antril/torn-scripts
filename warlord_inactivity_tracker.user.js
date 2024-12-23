@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Warlord Inactivity Tracker
-// @namespace
+// @namespace   antril.torn.warlord
 // @version     1.0
 // @description shows last activity status for holders of RW weapons
 // @author      Antril [3021498]
