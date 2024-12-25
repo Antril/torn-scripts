@@ -6,7 +6,7 @@
 // @author      Antril [3021498]
 // @license     GNU GPLv3
 // @run-at      document-end
-// @match       https://www.torn.com/factions.php?step=your
+// @match       https://www.torn.com/factions.php?step=your*
 // @grant       GM_xmlhttpRequest
 // @grant       GM_addStyle
 // @connect     api.torn.com
