@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Warlord Inactivity Tracker
 // @namespace   antril.torn.warlord
-// @version     1.0
+// @version     1.1
 // @description shows last activity status for holders of RW weapons
 // @author      Antril [3021498]
 // @license     GNU GPLv3
@@ -9,29 +9,70 @@
 // @match       https://www.torn.com/factions.php?step=your
 // @grant       GM_xmlhttpRequest
 // @grant       GM_addStyle
-// @connect     api.torn.com/
-// @require     https://code.jquery.com/jquery-3.6.0.min.js
+// @connect     api.torn.com
+// @require     https://code.jquery.com/jquery-3.7.0.min.js
 // ==/UserScript==
+
+/////////////
+// OPTIONS //
+/////////////
 
 let apiKey = ""; // SET API KEY
 
+// Changee the background colour here
+let darkModeColour = "#544413"
+let lightModeColour = "#e73121"
+
+
+////////////
+// SCRIPT //
+////////////
+
 if (!apiKey?.length == 16) { alert('Warlord Inactivity Tracker - No APIkey set'); return }
 
-let rgxp = "\/.*tab=armoury.*sub=weapons.*"
-let members = {}
 
+function getCookie (name) {
+	let value = `; ${document.cookie}`;
+	let parts = value.split(`; ${name}=`);
+	if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+let rgxp = "\/.*tab=armoury.*sub=weapons.*"
+let previous_fragment = ""
+let members = {}
+let backgroundColour = getCookie("darkModeEnabled") === "false" ? lightModeColour : darkModeColour
 checkURLFragment();
 
 window.addEventListener("hashchange", function (){
     checkURLFragment()
 });
 
+function setArmouryObserver() {
+    var observer = new MutationObserver(function(mutations, observer) {
+        $.each(mutations, function (i, mutation) {
+            let addedNodes = $(mutation.addedNodes);
+            let selector = $("#armoury-weapons > .item-list > li")
+            let filteredEls = addedNodes.find(selector).addBack(selector);
+            if(filteredEls.length > 0) {
+                checkLoans();
+            }
+        });
+    });
+    observer.observe($("#armoury-weapons")[0], {childList: true, subtree: true});
+}
+
+
 async function checkURLFragment() {
-    let hash = window.location.hash;
-    if(hash.match(rgxp)) {
-        await loadFactionMemberStatus()
+    let fragment = window.location.hash;
+    if(fragment.match(rgxp)) {
+        if (!previous_fragment.match(rgxp)) {
+             await loadFactionMemberStatus();
+        }
+        await waitForArmoury();
+        setArmouryObserver();
         checkLoans();
     }
+    previous_fragment = fragment
 }
 
 function JSONparse(str) {
@@ -96,5 +137,5 @@ function checkLoan(loan, currentTimestamp) {
 }
 
 function markLoanAsOverdue(loan) {
-    $(loan).find(".loaned").css("background-color", "#544413");
+    $(loan).find(".loaned").css("background-color", backgroundColour);
 }
