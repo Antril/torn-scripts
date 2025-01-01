@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Warlord Inactivity Tracker
 // @namespace   antril.torn.warlord
-// @version     1.2
+// @version     1.1
 // @description shows last activity status for holders of RW weapons
 // @author      Antril [3021498]
 // @license     GNU GPLv3
@@ -164,7 +164,7 @@ function checkLoan(loan, currentTimestamp) {
    let player = $(loan).find(".loaned > a")[0].text
    let playerState = members[player]
    let timestampDelta = currentTimestamp - playerState.timestamp
-   if(timestampDelta > 3600) {
+   if ((playerState.status === "Idle" && timestampDelta > 3600) || playerState.status === "Offline") {
        markLoanAsOverdue(loan)
    }
 }
