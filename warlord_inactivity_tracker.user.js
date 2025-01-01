@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Warlord Inactivity Tracker
 // @namespace   antril.torn.warlord
-// @version     1.1
+// @version     1.2
 // @description shows last activity status for holders of RW weapons
 // @author      Antril [3021498]
 // @license     GNU GPLv3
@@ -17,7 +17,7 @@
 // OPTIONS //
 /////////////
 
-let apiKey = ""; // SET API KEY
+let manualAPIKey = null; // Optionally set API key
 
 // Changee the background colour here
 let darkModeColour = "#544413"
@@ -28,7 +28,51 @@ let lightModeColour = "#e73121"
 // SCRIPT //
 ////////////
 
-if (!apiKey?.length == 16) { alert('Warlord Inactivity Tracker - No APIkey set'); return }
+let rgxp = "\/.*tab=armoury.*sub=weapons.*"
+let previous_fragment = ""
+let members = {}
+let backgroundColour = getCookie("darkModeEnabled") === "false" ? lightModeColour : darkModeColour
+
+let apiKey = manualAPIKey || loadAPIKey() || requestAPIKey()
+
+if (!apiKey || !apiKey?.length == 16) { alert('Warlord Inactivity Tracker - No APIkey set'); return }
+
+checkURLFragment();
+
+window.addEventListener("hashchange", function (){
+    checkURLFragment()
+});
+
+function loadAPIKey() {
+    let blob = localStorage.getItem("torn.antril.keys") || null;
+    if (blob !== null) {
+        let keys = JSON.parse(blob);
+        if ("warlord_key" in keys) return keys.warlord_key;
+        if ("common_key" in keys && confirm("Antril common key detected, do you want to use it for this script?")) {
+            keys.warlord_key = keys.common_key
+            localStorage.setItem("torn.antril.keys", JSON.stringify(keys));
+            return keys.common_key;
+        }
+    }
+    return null;
+}
+
+
+function requestAPIKey() {
+    let blob = localStorage.getItem('torn.antril.keys') || null;
+    let keys = blob? JSON.parse(blob) : {}
+
+    const key = prompt("Enter your Torn API key (leave blank to skip):");
+    if (!key) return;
+
+    keys.warlord_key = key;
+    if (confirm("Would you like to use this key for other scripts from Antril? (This will override the common key if already set")) {
+        keys.common_key = key;
+
+    }
+    localStorage.setItem("torn.antril.keys", JSON.stringify(keys));
+    return key;
+}
 
 
 function getCookie (name) {
@@ -36,16 +80,6 @@ function getCookie (name) {
 	let parts = value.split(`; ${name}=`);
 	if (parts.length === 2) return parts.pop().split(';').shift();
 }
-
-let rgxp = "\/.*tab=armoury.*sub=weapons.*"
-let previous_fragment = ""
-let members = {}
-let backgroundColour = getCookie("darkModeEnabled") === "false" ? lightModeColour : darkModeColour
-checkURLFragment();
-
-window.addEventListener("hashchange", function (){
-    checkURLFragment()
-});
 
 function setArmouryObserver() {
     var observer = new MutationObserver(function(mutations, observer) {
@@ -99,7 +133,6 @@ async function loadFactionMemberStatus() {
                         members[m.name] = m.last_action;
                     }
                 )
-                localStorage["torn.antril.f_members"] = JSON.stringify(members);
                 resolve();
             }
         });
